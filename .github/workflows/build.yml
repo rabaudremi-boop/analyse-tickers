@@ -1,0 +1,43 @@
+name: Build & deploy dashboard
+
+on:
+  schedule:
+    - cron: "0 6 * * *"        # tous les jours à 06:00 UTC
+  workflow_dispatch: {}          # bouton "Run workflow" manuel
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Générer le dashboard PWA
+        run: python scripts/batch_charts.py watchlist.txt --out public --pwa --title "Analyse Tickers"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
