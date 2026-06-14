@@ -14,6 +14,7 @@ Usage :
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 
@@ -144,6 +145,14 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   .nav button{font-size:13px;padding:5px 13px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;cursor:pointer}
   .nav button.active{background:#378ADD;color:#fff;border-color:#378ADD}
   .nav .lab{font-size:12px;opacity:.6}
+  .analysis{background:rgba(128,128,128,.06);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:14px;line-height:1.65}
+  .analysis h1,.analysis h2,.analysis h3{font-size:16px;font-weight:600;margin:14px 0 6px}
+  .analysis h1{font-size:18px}
+  .analysis table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+  .analysis th,.analysis td{border:1px solid rgba(128,128,128,.25);padding:5px 9px;text-align:left}
+  .analysis code{background:rgba(128,128,128,.15);padding:1px 5px;border-radius:4px;font-size:13px}
+  .analysis .muted{opacity:.6;font-style:italic}
+  .analysis details summary{cursor:pointer;font-weight:600;font-size:15px}
   .toggles{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;font-size:12px}
   .toggles label{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
   .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;opacity:.8;margin:4px 0 8px}
@@ -162,6 +171,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   <div class="score" id="score"></div>
   <div class="buyzone" id="bz"></div>
   <div class="read" id="read"></div>
+  <details class="analysis" id="analysis" open><summary>📋 Analyse complète (skill)</summary>__ANALYSIS__</details>
   <div class="toggles" id="tg"></div>
   <div class="legend" id="lg"></div>
   <div class="lbl">Prix</div><div id="main" class="pane" style="height:430px"></div>
@@ -309,17 +319,44 @@ go();
 </script></body></html>"""
 
 
-def render_html(data):
+def render_html(data, analysis_html=""):
     title = data.get("name", data["symbol"])
     current = {"name": data.get("name", data["symbol"]), "interval": data.get("interval", "1d")}
     return (HTML_TEMPLATE
             .replace("__DATA__", json.dumps(data, ensure_ascii=False))
             .replace("__CURRENT__", json.dumps(current, ensure_ascii=False))
+            .replace("__ANALYSIS__", analysis_html or "")
             .replace("__TITLE__", title)
             .replace("__SUB__", data["source"]))
 
 
-def analyze_to_html(tv_symbol, days, out_path, with_news=True, interval="1d"):
+def _analysis_key(tv_symbol):
+    return re.sub(r"[^A-Za-z0-9]+", "_", tv_symbol.strip().upper()).strip("_")
+
+
+def load_analysis_html(tv_symbol, name, analysis_dir):
+    """Charge analysis/<clé>.md (Markdown -> HTML) si présent, sinon placeholder."""
+    placeholder = (f'<p class="muted">Analyse non encore générée. '
+                   f'Lance « analyse {name} » dans Claude Code pour la remplir.</p>')
+    if not analysis_dir:
+        return placeholder
+    path = os.path.join(analysis_dir, _analysis_key(tv_symbol) + ".md")
+    if not os.path.exists(path):
+        return placeholder
+    try:
+        import markdown
+        with open(path, encoding="utf-8") as f:
+            md = f.read()
+        return markdown.markdown(md, extensions=["tables", "fenced_code", "sane_lists"])
+    except Exception:
+        try:
+            with open(path, encoding="utf-8") as f:
+                return "<pre>" + f.read() + "</pre>"
+        except OSError:
+            return placeholder
+
+
+def analyze_to_html(tv_symbol, days, out_path, with_news=True, interval="1d", analysis_dir=None):
     candles, meta = fetch_ohlcv(tv_symbol, days, interval)
     if not candles:
         return None, meta
@@ -329,8 +366,9 @@ def analyze_to_html(tv_symbol, days, out_path, with_news=True, interval="1d"):
     news = get_news(meta["asset_class"], meta["resolved"]) if with_news else []
     name = display_name(meta["asset_class"], meta["resolved"])
     data = build_analysis(candles, meta, news=news, name=name)
+    analysis_html = load_analysis_html(tv_symbol, name, analysis_dir)
     with open(out_path, "w", encoding="utf-8") as f:
-        f.write(render_html(data))
+        f.write(render_html(data, analysis_html))
     return data, meta
 
 
@@ -341,12 +379,14 @@ def main():
     ap.add_argument("--interval", choices=["1d", "1w"], default="1d", help="Unité de temps")
     ap.add_argument("--out", help="Chemin HTML de sortie")
     ap.add_argument("--no-news", action="store_true", help="Ne pas récupérer les actualités")
+    ap.add_argument("--analysis-dir", help="Dossier des analyses Markdown (analysis/<clé>.md)")
     args = ap.parse_args()
 
     safe = args.symbol.replace(":", "_").replace("/", "_")
     out = args.out or os.path.join(os.getcwd(), f"{safe}_{args.interval}.html")
     data, meta = analyze_to_html(args.symbol, args.days, out,
-                                 with_news=not args.no_news, interval=args.interval)
+                                 with_news=not args.no_news, interval=args.interval,
+                                 analysis_dir=args.analysis_dir)
     if not data:
         print(f"ÉCHEC {args.symbol} : {meta.get('error')}", file=sys.stderr)
         sys.exit(1)

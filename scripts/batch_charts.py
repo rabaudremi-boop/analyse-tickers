@@ -56,7 +56,7 @@ def safe_name(sym):
     return re.sub(r"[^A-Za-z0-9_.-]", "_", sym)
 
 
-def run_one(sym, days, out_dir, with_news=True, intervals=("1d", "1w")):
+def run_one(sym, days, out_dir, with_news=True, intervals=("1d", "1w"), analysis_dir=None):
     files = {}
     primary = None
     last_err = None
@@ -64,7 +64,8 @@ def run_one(sym, days, out_dir, with_news=True, intervals=("1d", "1w")):
         tmp = os.path.join(out_dir, safe_name(sym) + f"_{iv}.html")
         try:
             data, meta = analyze_to_html(sym, days, tmp,
-                                         with_news=(with_news and idx == 0), interval=iv)
+                                         with_news=(with_news and idx == 0), interval=iv,
+                                         analysis_dir=analysis_dir)
         except Exception as e:
             data, meta, last_err = None, None, f"{type(e).__name__}: {e}"
         if data:
@@ -178,6 +179,8 @@ def main():
                     help="Tri de l'index")
     ap.add_argument("--pwa", action="store_true", help="Générer une PWA installable (manifest/SW/icônes)")
     ap.add_argument("--title", default="Analyse Tickers", help="Nom de l'app PWA")
+    ap.add_argument("--analysis-dir", default="analysis",
+                    help="Dossier des analyses Markdown du skill (analysis/<clé>.md)")
     args = ap.parse_args()
     intervals = tuple(x.strip() for x in args.intervals.split(",") if x.strip())
 
@@ -208,7 +211,8 @@ def main():
 
     results = []
     with ThreadPoolExecutor(max_workers=max(1, args.workers)) as ex:
-        futs = {ex.submit(run_one, s, args.days, out_dir, not args.no_news, intervals): s
+        adir = args.analysis_dir if (args.analysis_dir and os.path.isdir(args.analysis_dir)) else None
+        futs = {ex.submit(run_one, s, args.days, out_dir, not args.no_news, intervals, adir): s
                 for s in symbols}
         for fut in as_completed(futs):
             r = fut.result()
