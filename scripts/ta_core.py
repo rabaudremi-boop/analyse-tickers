@@ -168,8 +168,11 @@ def volume_profile(highs, lows, closes, vols, bins=60, value_area=0.7):
     buckets = [0.0] * bins
     for i in range(len(closes)):
         tp = (highs[i] + lows[i] + closes[i]) / 3
+        if tp != tp or width <= 0:  # NaN-safe
+            continue
         b = min(bins - 1, max(0, int((tp - lo) / width)))
-        buckets[b] += vols[i] if vols else 0
+        vv = vols[i] if vols else 0
+        buckets[b] += vv if vv == vv else 0  # ignore NaN
     if sum(buckets) == 0:
         return None
     poc_b = max(range(bins), key=lambda b: buckets[b])

@@ -41,6 +41,17 @@ INDEX_MAP = {
     "DAX": "^GDAXI", "DE40": "^GDAXI", "CAC": "^FCHI", "CAC40": "^FCHI", "FR40": "^FCHI",
     "UKX": "^FTSE", "UK100": "^FTSE", "FTSE": "^FTSE",
     "NI225": "^N225", "JP225": "^N225", "HSI": "^HSI",
+    "DXY": "DX-Y.NYB", "DX": "DX-Y.NYB", "USDOLLAR": "DX-Y.NYB",
+}
+# Matières premières -> contrats à terme Yahoo
+COMMODITY_MAP = {
+    "GOLD": "GC=F", "XAUUSD": "GC=F", "XAU": "GC=F", "GC": "GC=F",
+    "SILVER": "SI=F", "XAGUSD": "SI=F", "XAG": "SI=F", "SI": "SI=F",
+    "COPPER": "HG=F", "HG": "HG=F",
+    "PLATINUM": "PL=F", "XPTUSD": "PL=F", "PALLADIUM": "PA=F",
+    "WTI": "CL=F", "USOIL": "CL=F", "OIL": "CL=F", "CRUDE": "CL=F", "CL": "CL=F",
+    "BRENT": "BZ=F", "UKOIL": "BZ=F", "BZ": "BZ=F",
+    "NATGAS": "NG=F", "NG": "NG=F",
 }
 HEADERS = {"User-Agent": "ticker-analysis/2.0", "Accept": "application/json"}
 TIMEOUT = 30
@@ -104,12 +115,20 @@ def _yf_history(yf_symbol, days, interval="1d"):
     hist = tk.history(period=period, interval=yf_int)
     if hist is None or hist.empty:
         return None
+    import math
+    def num(x, d=0.0):
+        try:
+            f = float(x)
+            return d if math.isnan(f) else f
+        except (TypeError, ValueError):
+            return d
     out = []
     for ts, row in hist.iterrows():
-        out.append({"time": ts.strftime("%Y-%m-%d"),
-                    "open": float(row["Open"]), "high": float(row["High"]),
-                    "low": float(row["Low"]), "close": float(row["Close"]),
-                    "volume": float(row.get("Volume", 0) or 0)})
+        o, h, lo, c = num(row["Open"]), num(row["High"]), num(row["Low"]), num(row["Close"])
+        if not c or not h or not lo:  # ligne incomplète (NaN OHLC) -> on saute
+            continue
+        out.append({"time": ts.strftime("%Y-%m-%d"), "open": o, "high": h,
+                    "low": lo, "close": c, "volume": num(row.get("Volume", 0))})
     return out[-days:] if days else out
 
 
@@ -121,10 +140,16 @@ def resolve(tv_symbol):
     sym = sym.strip()
     if exch in CRYPTO_EXCHANGES or (not exch and sym.endswith(("USDT", "USDC"))):
         return "crypto", "crypto", sym
+    if sym in COMMODITY_MAP:                       # GOLD, SILVER, BRENT, COPPER… (avant forex)
+        return "commodity", "yfinance", COMMODITY_MAP[sym]
+    if sym in INDEX_MAP:                           # SPX, DXY, CAC…
+        return "index", "yfinance", INDEX_MAP[sym]
     if exch in FOREX_EXCHANGES or (len(sym) == 6 and sym.isalpha() and exch in {"", "FX"}):
         return "forex", "yfinance", f"{sym}=X"
-    if sym in INDEX_MAP:
-        return "index", "yfinance", INDEX_MAP[sym]
+    if sym.endswith("=F"):                          # contrat à terme brut (GC=F)
+        return "commodity", "yfinance", sym
+    if sym.endswith("=X"):                          # paire forex brute (EURUSD=X)
+        return "forex", "yfinance", sym
     if exch in STOCK_SUFFIX:
         return "stock", "yfinance", f"{sym}{STOCK_SUFFIX[exch]}"
     # US ou inconnu -> tenter yfinance brut
@@ -132,11 +157,20 @@ def resolve(tv_symbol):
 
 
 _NAME_CACHE = {}
+# Libellés propres pour matières premières / indices (Yahoo renvoie "Gold Aug 26"…)
+_NICE_NAME = {
+    "GC=F": "Or (Gold)", "SI=F": "Argent (Silver)", "HG=F": "Cuivre (Copper)",
+    "PL=F": "Platine (Platinum)", "PA=F": "Palladium", "NG=F": "Gaz naturel",
+    "BZ=F": "Pétrole Brent", "CL=F": "Pétrole WTI",
+    "DX-Y.NYB": "Dollar Index (DXY)",
+}
 
 
 def display_name(asset_class, resolved):
     """Nom lisible de l'actif (pour fichiers/titres). Crypto -> base ; sinon Yahoo shortName.
     Mis en cache (évite les appels .info en double, ex. 1D + 1W du même ticker)."""
+    if resolved in _NICE_NAME:
+        return _NICE_NAME[resolved]
     if asset_class == "crypto":
         return re.sub(r"(USDT|USDC|BUSD|USD|PERP)$", "", resolved.upper()) or resolved
     if resolved in _NAME_CACHE:
