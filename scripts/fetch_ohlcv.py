@@ -101,6 +101,35 @@ def _crypto_klines(sym, days, interval="1d"):
                     for x in rows], f"bybit:{sym}"
     except (requests.RequestException, ValueError, KeyError):
         pass
+    # Binance/Bybit sont bloqués depuis certains clouds (ex. GitHub Actions) -> fallbacks
+    base = re.sub(r"(USDT|USDC|BUSD|USD)$", "", sym)
+    # 3) OKX (large couverture, instId BASE-USDT)
+    try:
+        okx_bar = "1W" if interval == "1w" else "1D"
+        r = requests.get("https://www.okx.com/api/v5/market/candles",
+                         params={"instId": f"{base}-USDT", "bar": okx_bar, "limit": "300"},
+                         headers=HEADERS, timeout=TIMEOUT)
+        rows = (r.json() or {}).get("data") or []
+        if rows:
+            rows = list(reversed(rows))
+            return [{"time": _bn_iso(int(x[0])), "open": float(x[1]), "high": float(x[2]),
+                     "low": float(x[3]), "close": float(x[4]), "volume": float(x[5])}
+                    for x in rows], f"okx:{base}-USDT"
+    except (requests.RequestException, ValueError, KeyError, IndexError):
+        pass
+    # 4) Coinbase (très accessible depuis le cloud ; OHLC = [t,low,high,open,close,vol])
+    try:
+        cb_g = 604800 if interval == "1w" else 86400
+        r = requests.get(f"https://api.exchange.coinbase.com/products/{base}-USD/candles",
+                         params={"granularity": cb_g}, headers=HEADERS, timeout=TIMEOUT)
+        rows = r.json()
+        if isinstance(rows, list) and rows:
+            rows = sorted(rows, key=lambda x: x[0])
+            return [{"time": _bn_iso(int(x[0]) * 1000), "open": float(x[3]), "high": float(x[2]),
+                     "low": float(x[1]), "close": float(x[4]), "volume": float(x[5])}
+                    for x in rows], f"coinbase:{base}-USD"
+    except (requests.RequestException, ValueError, KeyError, IndexError):
+        pass
     return None, None
 
 
