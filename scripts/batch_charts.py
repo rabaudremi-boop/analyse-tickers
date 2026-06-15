@@ -109,7 +109,8 @@ def run_one(sym, days, out_dir, with_news=True, intervals=("1d", "1w"),
         except Exception as e:
             data, meta, last_err = None, None, f"{type(e).__name__}: {e}"
         if data:
-            nice = safe_name(data.get("name", sym))[:40].strip("_") or safe_name(sym)
+            # nom lisible + clé symbole -> garantit l'unicité (évite collisions de noms tronqués)
+            nice = (safe_name(data.get("name", sym))[:30].strip("_") or "x") + "_" + safe_name(sym)
             fn = os.path.join(out_dir, f"{nice}_{iv}.html")
             if fn != tmp:
                 os.replace(tmp, fn)
