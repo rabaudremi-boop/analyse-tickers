@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from chart_ta import analyze_to_html
+from chart_ta import analyze_to_html, _analysis_key
 from fetch_ohlcv import resolve, display_name
 import pwa
 
@@ -96,7 +96,7 @@ def risk_reward(r):
 
 
 def run_one(sym, days, out_dir, with_news=True, intervals=("1d", "1w"),
-            analysis_dir=None, category=""):
+            analysis_dir=None, category="", asset_meta=None):
     files = {}
     primary = None
     last_err = None
@@ -105,7 +105,7 @@ def run_one(sym, days, out_dir, with_news=True, intervals=("1d", "1w"),
         try:
             data, meta = analyze_to_html(sym, days, tmp,
                                          with_news=(with_news and idx == 0), interval=iv,
-                                         analysis_dir=analysis_dir)
+                                         analysis_dir=analysis_dir, asset_meta=asset_meta)
         except Exception as e:
             data, meta, last_err = None, None, f"{type(e).__name__}: {e}"
         if data:
@@ -124,7 +124,9 @@ def run_one(sym, days, out_dir, with_news=True, intervals=("1d", "1w"),
     data, meta = primary
     r = data["readout"]
     cat = category or CAT_FROM_CLASS.get(meta["asset_class"], "Action")
+    am = asset_meta or {}
     return {"symbol": sym, "ok": True, "files": files, "name": data.get("name", sym),
+            "sector": am.get("sector") or cat, "desc": am.get("desc", ""),
             "asset": meta["asset_class"], "category": cat, "trend": r["trend"], "rsi": r["rsi"],
             "rsi_state": r["rsi_state"], "support": r["near_support"],
             "resistance": r["near_resistance"], "patterns": r["patterns"],
@@ -158,6 +160,8 @@ input{width:100%;max-width:320px;padding:10px 13px;border:1px solid var(--bd);bo
 .fbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:12px 0}
 .fbtn{font-size:12px;padding:6px 12px;border-radius:9px;border:1px solid var(--bd);background:var(--surf);color:inherit;cursor:pointer;transition:.12s}
 .fbtn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+.sel{font-size:12px;padding:6px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--surf);color:inherit;cursor:pointer;max-width:200px}
+.cdesc{font-size:11px;color:var(--mut);margin-top:4px;line-height:1.35}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 .card{position:relative;color:inherit;background:var(--surf);border:1px solid var(--bd);border-radius:14px;padding:13px 15px;transition:.12s}
 .card:hover{border-color:var(--ac);transform:translateY(-1px)}
@@ -194,6 +198,7 @@ input{width:100%;max-width:320px;padding:10px 13px;border:1px solid var(--bd);bo
 <div id="panel">__PANEL__</div>
 <div class="fbar" id="filterbar">
   <input id="q" placeholder="rechercher un actif…" oninput="flt()">
+  <select id="secf" class="sel" onchange="curSec=this.value;flt()"></select>
   <span id="catf"></span>
 </div>
 <div class="fbar" id="biasf"></div>
@@ -208,13 +213,14 @@ input{width:100%;max-width:320px;padding:10px 13px;border:1px solid var(--bd);bo
   <button class="tb" data-tab="infos" onclick="setTab('infos')"><span class="ic">ℹ️</span>Infos</button>
 </nav>
 <script>
-var CATS=__CATS__, curCat='Tous', curBias='Tous', tab='marche';
+var CATS=__CATS__, SECTORS=__SECTORS__, curCat='Tous', curBias='Tous', curSec='Tous', tab='marche';
 var FAV=JSON.parse(localStorage.getItem('ta-favs')||'[]');
 function saveFav(){localStorage.setItem('ta-favs',JSON.stringify(FAV));}
 function toggleFav(s,btn){event.stopPropagation();var i=FAV.indexOf(s);if(i>=0)FAV.splice(i,1);else FAV.push(s);saveFav();markFavs();if(tab==='surveillance')flt();}
 function markFavs(){document.querySelectorAll('#g .card').forEach(function(c){var b=c.querySelector('.fav');if(!b)return;var f=FAV.indexOf(c.dataset.sym)>=0;b.textContent=f?'★':'☆';b.classList.toggle('on',f);});}
 function chips(id,list,cur,setter){var e=document.getElementById(id);e.innerHTML='';list.forEach(function(c){var b=document.createElement('button');b.className='fbtn'+(c===cur?' active':'');b.textContent=c;b.onclick=function(){setter(c);};e.appendChild(b);});}
-function renderChips(){chips('catf',['Tous'].concat(CATS),curCat,function(c){curCat=c;renderChips();flt();});chips('biasf',['Tous','Haussier','Baissier','Neutre'],curBias,function(c){curBias=c;renderChips();flt();});}
+function renderChips(){chips('catf',['Tous'].concat(CATS),curCat,function(c){curCat=c;renderChips();flt();});chips('biasf',['Tous','Haussier','Baissier','Neutre'],curBias,function(c){curBias=c;renderChips();flt();});
+ var sf=document.getElementById('secf');if(sf&&!sf.options.length){sf.innerHTML='<option>Tous</option>'+SECTORS.map(function(s){return '<option>'+s+'</option>';}).join('');}}
 function setTab(t){tab=t;document.querySelectorAll('.tabbar .tb').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t);});
  var m=(t==='marche');
  document.getElementById('panel').style.display=m?'':'none';
@@ -228,7 +234,7 @@ function flt(){var v=(document.getElementById('q').value||'').toLowerCase();var 
   var ok=true;
   if(tab==='surveillance')ok=FAV.indexOf(c.dataset.sym)>=0;
   else if(tab==='top')ok=(+c.dataset.rank)<15;
-  else ok=(curCat==='Tous'||c.dataset.cat===curCat)&&(curBias==='Tous'||c.dataset.bias===curBias.toLowerCase())&&(!v||c.textContent.toLowerCase().includes(v));
+  else ok=(curCat==='Tous'||c.dataset.cat===curCat)&&(curSec==='Tous'||c.dataset.sector===curSec)&&(curBias==='Tous'||c.dataset.bias===curBias.toLowerCase())&&(!v||c.textContent.toLowerCase().includes(v));
   c.style.display=ok?'':'none';if(ok)shown++;});
  document.getElementById('emptyfav').style.display=(tab==='surveillance'&&shown===0)?'':'none';}
 renderChips();markFavs();flt();
@@ -292,6 +298,11 @@ def build_index(results, out_dir, title="Analyse Tickers"):
                   "Matière première", "Devise", "Indice"]
     present = [c for c in cats_order if any(r["category"] == c for r in ok)]
     present += [c for c in {r["category"] for r in ok} if c not in present]
+    sec_order = ["Technologie", "Semi-conducteurs", "Finance", "Santé", "Énergie",
+                 "Industrie", "Luxe & Consommation", "Consommation de base", "Crypto",
+                 "ETF", "Matières premières", "Devises", "Indices"]
+    secs = [s for s in sec_order if any(r.get("sector") == s for r in ok)]
+    secs += sorted(s for s in {r.get("sector") for r in ok if r.get("sector")} if s not in secs)
 
     for idx, r in enumerate(ok):
         up = "haussier" in r["trend"]
@@ -311,12 +322,15 @@ def build_index(results, out_dir, title="Analyse Tickers"):
                    f'({bz["distance_pct"]}% sous)</div>' if bz else "")
         links = " · ".join(f'<a href="{fn}">{iv.upper()}</a>' for iv, fn in r["files"].items())
         sym = r["symbol"].replace("'", "")
+        desc = (r.get("desc") or "").replace("<", "")
+        desc_html = f'<div class="cdesc">{desc}</div>' if desc else ""
         cards.append(
             f'<div class="card" data-cat="{r["category"]}" data-bias="{_bias_key(r["bias"])}" '
-            f'data-sym="{sym}" data-rank="{idx}">'
+            f'data-sector="{r.get("sector","")}" data-sym="{sym}" data-rank="{idx}">'
             f'<button class="fav" onclick="toggleFav(\'{sym}\',this)">☆</button>'
             f'<div class="sym">{r.get("name", r["symbol"])}</div>'
-            f'<div class="tag">{r["symbol"]} · {r["category"]}</div>'
+            f'<div class="tag">{r["symbol"]} · {r.get("sector", r["category"])}</div>'
+            f'{desc_html}'
             f'<div class="stars">{stars} <span class="biasl">{r["bias"]}</span></div>'
             f'{rr_html}'
             f'<div class="row {"up" if up else "down"}">{r["trend"]}</div>'
@@ -346,6 +360,7 @@ def build_index(results, out_dir, title="Analyse Tickers"):
     html = (INDEX_TPL.replace("__CARDS__", "\n".join(cards))
             .replace("__PANEL__", build_market_panel(ok))
             .replace("__CATS__", json.dumps(present, ensure_ascii=False))
+            .replace("__SECTORS__", json.dumps(secs, ensure_ascii=False))
             .replace("__INFOS__", infos)
             .replace("__TITLE__", title)
             .replace("__N__", str(len(ok)))
@@ -371,7 +386,15 @@ def main():
     ap.add_argument("--title", default="Analyse Tickers", help="Nom de l'app PWA")
     ap.add_argument("--analysis-dir", default="analysis",
                     help="Dossier des analyses Markdown du skill (analysis/<clé>.md)")
+    ap.add_argument("--meta", default="meta.json",
+                    help="JSON métadonnées (clé -> {sector, desc})")
     args = ap.parse_args()
+    META = {}
+    if args.meta and os.path.exists(args.meta):
+        try:
+            META = json.load(open(args.meta, encoding="utf-8"))
+        except (OSError, ValueError):
+            META = {}
     intervals = tuple(x.strip() for x in args.intervals.split(",") if x.strip())
 
     if args.symbols:
@@ -405,7 +428,7 @@ def main():
     with ThreadPoolExecutor(max_workers=max(1, args.workers)) as ex:
         adir = args.analysis_dir if (args.analysis_dir and os.path.isdir(args.analysis_dir)) else None
         futs = {ex.submit(run_one, s, args.days, out_dir, not args.no_news, intervals,
-                          adir, cat_map.get(s, "")): s
+                          adir, cat_map.get(s, ""), META.get(_analysis_key(s))): s
                 for s in symbols}
         for fut in as_completed(futs):
             r = fut.result()

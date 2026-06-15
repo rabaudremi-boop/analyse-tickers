@@ -35,7 +35,7 @@ def _series(times, vals):
             for i in range(len(vals)) if vals[i] is not None]
 
 
-def build_analysis(candles, meta, news=None, name=None):
+def build_analysis(candles, meta, news=None, name=None, asset_meta=None):
     t = [c["time"] for c in candles]
     o = [c["open"] for c in candles]
     h = [c["high"] for c in candles]
@@ -98,9 +98,11 @@ def build_analysis(candles, meta, news=None, name=None):
         "stars": score["stars"], "bias": score["bias"], "score": score["score"],
     }
 
+    am = asset_meta or {}
     return {
         "symbol": meta["input"], "name": name or meta["input"],
         "asset_class": meta["asset_class"],
+        "sector": am.get("sector"), "desc": am.get("desc"),
         "interval": meta.get("interval", "1d"),
         "source": meta["source"], "generated_at": datetime.now(timezone.utc).isoformat(),
         "t": t, "o": o, "h": h, "l": low, "cl": cl, "vol": vol,
@@ -145,6 +147,9 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   .nav button{font-size:13px;padding:5px 13px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;cursor:pointer}
   .nav button.active{background:#378ADD;color:#fff;border-color:#378ADD}
   .nav .lab{font-size:12px;opacity:.6}
+  .adesc{font-size:13px;line-height:1.5;background:rgba(128,128,128,.07);border-radius:8px;padding:9px 13px;margin-bottom:12px}
+  .adesc .sec{display:inline-block;font-size:11px;font-weight:600;color:#534AB7;background:rgba(127,119,221,.15);border-radius:6px;padding:1px 8px;margin-right:8px}
+  @media(prefers-color-scheme:dark){.adesc .sec{color:#AFA9EC}}
   .analysis{background:rgba(128,128,128,.06);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:14px;line-height:1.65}
   .analysis h1,.analysis h2,.analysis h3{font-size:16px;font-weight:600;margin:14px 0 6px}
   .analysis h1{font-size:18px}
@@ -168,6 +173,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     <button id="b1d" data-iv="1d">1D</button><button id="b1w" data-iv="1w">1W</button>
   </div>
   <h1 id="ttl"></h1><div class="sub" id="sub"></div>
+  <div class="adesc" id="adesc"></div>
   <div class="score" id="score"></div>
   <div class="buyzone" id="bz"></div>
   <div class="read" id="read"></div>
@@ -199,7 +205,9 @@ function go(){
   if(!window.LightweightCharts){return setTimeout(go,120);}
   const LC=LightweightCharts, dark=matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches;
   document.getElementById('ttl').textContent=(D.name||D.symbol)+'  ·  '+(D.interval||'1d').toUpperCase();
-  document.getElementById('sub').textContent=D.symbol+' · '+D.asset_class+' · '+D.source+' · généré '+D.generated_at.slice(0,16).replace('T',' ')+' UTC';
+  document.getElementById('sub').textContent=D.symbol+' · '+(D.sector||D.asset_class)+' · '+D.source+' · généré '+D.generated_at.slice(0,16).replace('T',' ')+' UTC';
+  var ad=document.getElementById('adesc');
+  if(D.desc){ad.innerHTML=(D.sector?'<span class="sec">'+D.sector+'</span>':'')+D.desc;}else{ad.style.display='none';}
   const r=D.readout;
   document.getElementById('read').innerHTML=
     '<b>Lecture :</b> '+r.trend+' · RSI '+(r.rsi?r.rsi.toFixed(0):'n/a')+' ('+r.rsi_state+')'
@@ -356,7 +364,8 @@ def load_analysis_html(tv_symbol, name, analysis_dir):
             return placeholder
 
 
-def analyze_to_html(tv_symbol, days, out_path, with_news=True, interval="1d", analysis_dir=None):
+def analyze_to_html(tv_symbol, days, out_path, with_news=True, interval="1d",
+                    analysis_dir=None, asset_meta=None):
     candles, meta = fetch_ohlcv(tv_symbol, days, interval)
     if not candles:
         return None, meta
@@ -365,7 +374,7 @@ def analyze_to_html(tv_symbol, days, out_path, with_news=True, interval="1d", an
         return None, meta
     news = get_news(meta["asset_class"], meta["resolved"]) if with_news else []
     name = display_name(meta["asset_class"], meta["resolved"])
-    data = build_analysis(candles, meta, news=news, name=name)
+    data = build_analysis(candles, meta, news=news, name=name, asset_meta=asset_meta)
     analysis_html = load_analysis_html(tv_symbol, name, analysis_dir)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(render_html(data, analysis_html))

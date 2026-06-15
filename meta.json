@@ -1,0 +1,366 @@
+{
+ "NASDAQ_AAPL": {
+  "sector": "Technologie",
+  "desc": "iPhone, Mac et services — écosystème matériel + logiciel grand public."
+ },
+ "NASDAQ_MSFT": {
+  "sector": "Technologie",
+  "desc": "Windows, Office et surtout le cloud Azure ; gros pari sur l'IA."
+ },
+ "NASDAQ_GOOGL": {
+  "sector": "Technologie",
+  "desc": "Google : recherche, publicité, YouTube, cloud et IA (Gemini)."
+ },
+ "NASDAQ_AMZN": {
+  "sector": "Technologie",
+  "desc": "E-commerce mondial + cloud AWS (très rentable)."
+ },
+ "NASDAQ_NVDA": {
+  "sector": "Semi-conducteurs",
+  "desc": "Puces GPU, leader mondial de l'accélération IA."
+ },
+ "NASDAQ_META": {
+  "sector": "Technologie",
+  "desc": "Facebook, Instagram, WhatsApp ; publicité + IA/métavers."
+ },
+ "NASDAQ_TSLA": {
+  "sector": "Luxe & Consommation",
+  "desc": "Véhicules électriques, énergie et conduite autonome."
+ },
+ "NASDAQ_AMD": {
+  "sector": "Semi-conducteurs",
+  "desc": "Processeurs CPU/GPU, concurrent de Nvidia et Intel."
+ },
+ "NASDAQ_NFLX": {
+  "sector": "Technologie",
+  "desc": "Streaming vidéo par abonnement."
+ },
+ "NASDAQ_ADBE": {
+  "sector": "Technologie",
+  "desc": "Création (Photoshop), PDF et marketing — logiciels par abonnement."
+ },
+ "NASDAQ_COST": {
+  "sector": "Consommation de base",
+  "desc": "Distribution en gros (clubs-entrepôts) par abonnement."
+ },
+ "NASDAQ_QCOM": {
+  "sector": "Semi-conducteurs",
+  "desc": "Puces et brevets pour smartphones (modems 5G)."
+ },
+ "NASDAQ_MU": {
+  "sector": "Semi-conducteurs",
+  "desc": "Mémoires (DRAM/NAND), clé pour l'IA et les serveurs."
+ },
+ "NASDAQ_ARM": {
+  "sector": "Semi-conducteurs",
+  "desc": "Architectures de puces sous licence (quasi tous les mobiles)."
+ },
+ "NASDAQ_PLTR": {
+  "sector": "Technologie",
+  "desc": "Plateformes d'analyse de données (IA) pour États et entreprises."
+ },
+ "NYSE_ORCL": {
+  "sector": "Technologie",
+  "desc": "Bases de données et cloud d'entreprise."
+ },
+ "NYSE_CRM": {
+  "sector": "Technologie",
+  "desc": "Salesforce : logiciel CRM cloud (ventes/marketing)."
+ },
+ "NYSE_JPM": {
+  "sector": "Finance",
+  "desc": "Première banque américaine (détail + investissement)."
+ },
+ "NYSE_V": {
+  "sector": "Finance",
+  "desc": "Visa : réseau mondial de paiement par carte."
+ },
+ "NYSE_MA": {
+  "sector": "Finance",
+  "desc": "Mastercard : réseau mondial de paiement par carte."
+ },
+ "NYSE_UNH": {
+  "sector": "Santé",
+  "desc": "Assurance santé + services médicaux aux États-Unis."
+ },
+ "NYSE_LLY": {
+  "sector": "Santé",
+  "desc": "Pharma : diabète et anti-obésité (GLP-1)."
+ },
+ "NYSE_XOM": {
+  "sector": "Énergie",
+  "desc": "Pétrole et gaz intégré (super-major)."
+ },
+ "NASDAQ_AVGO": {
+  "sector": "Semi-conducteurs",
+  "desc": "Broadcom : puces IA sur mesure (ASIC), réseau datacenter et logiciels."
+ },
+ "NYSE_VRT": {
+  "sector": "Industrie",
+  "desc": "Vertiv : alimentation et refroidissement des datacenters (boom IA)."
+ },
+ "NYSE_TSM": {
+  "sector": "Semi-conducteurs",
+  "desc": "TSMC : 1re fonderie mondiale, fabrique les puces de Nvidia, Apple…"
+ },
+ "EURONEXT_MC": {
+  "sector": "Luxe & Consommation",
+  "desc": "LVMH : n°1 mondial du luxe (mode, vins & spiritueux, cosmétiques)."
+ },
+ "EURONEXT_RMS": {
+  "sector": "Luxe & Consommation",
+  "desc": "Hermès : maison de luxe (maroquinerie, soie)."
+ },
+ "EURONEXT_OR": {
+  "sector": "Luxe & Consommation",
+  "desc": "L'Oréal : n°1 mondial des cosmétiques."
+ },
+ "EURONEXT_TTE": {
+  "sector": "Énergie",
+  "desc": "TotalEnergies : pétrole, gaz et électricité."
+ },
+ "EURONEXT_SAN": {
+  "sector": "Santé",
+  "desc": "Sanofi : laboratoire pharmaceutique (vaccins, médicaments)."
+ },
+ "EURONEXT_SU": {
+  "sector": "Industrie",
+  "desc": "Schneider Electric : gestion de l'énergie et automatismes (datacenters)."
+ },
+ "EURONEXT_AI": {
+  "sector": "Industrie",
+  "desc": "Air Liquide : gaz industriels et médicaux."
+ },
+ "EURONEXT_AIR": {
+  "sector": "Industrie",
+  "desc": "Airbus : avions civils/militaires, espace, hélicoptères."
+ },
+ "EURONEXT_SAF": {
+  "sector": "Industrie",
+  "desc": "Safran : moteurs d'avion et équipements aéronautiques."
+ },
+ "EURONEXT_DSY": {
+  "sector": "Technologie",
+  "desc": "Dassault Systèmes : logiciels de conception 3D (jumeaux numériques)."
+ },
+ "EURONEXT_BNP": {
+  "sector": "Finance",
+  "desc": "BNP Paribas : grande banque européenne."
+ },
+ "EURONEXT_DG": {
+  "sector": "Industrie",
+  "desc": "Vinci : BTP et concessions (autoroutes, aéroports)."
+ },
+ "EURONEXT_CS": {
+  "sector": "Finance",
+  "desc": "AXA : assurance et gestion d'actifs."
+ },
+ "EURONEXT_EL": {
+  "sector": "Santé",
+  "desc": "EssilorLuxottica : verres optiques et montures (Ray-Ban)."
+ },
+ "EURONEXT_KER": {
+  "sector": "Luxe & Consommation",
+  "desc": "Kering : luxe (Gucci, Saint Laurent, Bottega Veneta)."
+ },
+ "EURONEXT_CAP": {
+  "sector": "Technologie",
+  "desc": "Capgemini : conseil et services informatiques."
+ },
+ "EURONEXT_RI": {
+  "sector": "Consommation de base",
+  "desc": "Pernod Ricard : spiritueux et vins (n°2 mondial)."
+ },
+ "EURONEXT_LR": {
+  "sector": "Industrie",
+  "desc": "Legrand : équipements électriques pour bâtiments."
+ },
+ "EURONEXT_HO": {
+  "sector": "Industrie",
+  "desc": "Thales : défense, aéronautique et cybersécurité."
+ },
+ "EURONEXT_BN": {
+  "sector": "Consommation de base",
+  "desc": "Danone : produits laitiers, eaux et nutrition."
+ },
+ "EURONEXTAMS_ASML": {
+  "sector": "Semi-conducteurs",
+  "desc": "ASML : machines de lithographie (indispensables à la fabrication des puces)."
+ },
+ "XETR_SAP": {
+  "sector": "Technologie",
+  "desc": "SAP : logiciels de gestion d'entreprise (ERP)."
+ },
+ "XETR_SIE": {
+  "sector": "Industrie",
+  "desc": "Siemens : industrie, automatismes, énergie et santé."
+ },
+ "XETR_ALV": {
+  "sector": "Finance",
+  "desc": "Allianz : assurance et gestion d'actifs (mondial)."
+ },
+ "EURONEXT_CW8": {
+  "sector": "ETF",
+  "desc": "Réplique le MSCI World (grandes actions des pays développés)."
+ },
+ "EURONEXT_PE500": {
+  "sector": "ETF",
+  "desc": "Réplique le S&P 500 (500 grandes actions US), éligible PEA."
+ },
+ "EURONEXT_PUST": {
+  "sector": "ETF",
+  "desc": "Réplique le Nasdaq-100 (tech US), éligible PEA."
+ },
+ "EURONEXT_PAEEM": {
+  "sector": "ETF",
+  "desc": "Réplique les marchés émergents (MSCI EM), éligible PEA."
+ },
+ "EURONEXT_PCEU": {
+  "sector": "ETF",
+  "desc": "Réplique les grandes actions européennes (MSCI Europe), éligible PEA."
+ },
+ "NASDAQ_QQQ": {
+  "sector": "ETF",
+  "desc": "Nasdaq-100 (tech US), l'ETF le plus liquide."
+ },
+ "NYSE_SPY": {
+  "sector": "ETF",
+  "desc": "S&P 500 (500 grandes actions américaines)."
+ },
+ "NASDAQ_SMH": {
+  "sector": "ETF",
+  "desc": "Secteur des semi-conducteurs (Nvidia, TSMC, ASML…)."
+ },
+ "NYSE_XLE": {
+  "sector": "ETF",
+  "desc": "Secteur de l'énergie US (Exxon, Chevron…)."
+ },
+ "NYSE_GLD": {
+  "sector": "ETF",
+  "desc": "Adossé à l'or physique."
+ },
+ "BINANCE_BTCUSDT": {
+  "sector": "Crypto",
+  "desc": "Bitcoin : 1re crypto, réserve de valeur décentralisée ('or numérique')."
+ },
+ "BINANCE_ETHUSDT": {
+  "sector": "Crypto",
+  "desc": "Ethereum : plateforme de contrats intelligents (DeFi, NFT)."
+ },
+ "BINANCE_SOLUSDT": {
+  "sector": "Crypto",
+  "desc": "Solana : blockchain L1 rapide et peu coûteuse."
+ },
+ "BINANCE_HYPEUSDT": {
+  "sector": "Crypto",
+  "desc": "Hyperliquid : blockchain + exchange de dérivés ; le token sert aux frais et à la gouvernance."
+ },
+ "BINANCE_BNBUSDT": {
+  "sector": "Crypto",
+  "desc": "BNB : token de l'écosystème Binance (frais réduits, chaîne BNB)."
+ },
+ "BINANCE_XRPUSDT": {
+  "sector": "Crypto",
+  "desc": "XRP : transferts de valeur rapides et peu chers entre institutions."
+ },
+ "BINANCE_ADAUSDT": {
+  "sector": "Crypto",
+  "desc": "Cardano : blockchain L1 axée recherche et sécurité."
+ },
+ "BINANCE_AVAXUSDT": {
+  "sector": "Crypto",
+  "desc": "Avalanche : L1 rapide avec sous-réseaux personnalisables."
+ },
+ "BINANCE_LINKUSDT": {
+  "sector": "Crypto",
+  "desc": "Chainlink : oracles reliant les blockchains aux données du monde réel."
+ },
+ "BINANCE_DOGEUSDT": {
+  "sector": "Crypto",
+  "desc": "Dogecoin : memecoin historique, très spéculatif."
+ },
+ "GOLD": {
+  "sector": "Matières premières",
+  "desc": "Or : valeur refuge, sensible aux taux réels et au dollar."
+ },
+ "SILVER": {
+  "sector": "Matières premières",
+  "desc": "Argent : précieux + industriel (solaire), très volatil."
+ },
+ "PLATINUM": {
+  "sector": "Matières premières",
+  "desc": "Platine : précieux + industriel (automobile)."
+ },
+ "COPPER": {
+  "sector": "Matières premières",
+  "desc": "Cuivre : baromètre de l'économie et de l'électrification."
+ },
+ "BRENT": {
+  "sector": "Matières premières",
+  "desc": "Pétrole Brent : référence mondiale (mer du Nord)."
+ },
+ "WTI": {
+  "sector": "Matières premières",
+  "desc": "Pétrole WTI : référence américaine."
+ },
+ "NATGAS": {
+  "sector": "Matières premières",
+  "desc": "Gaz naturel : chauffage/électricité, très saisonnier."
+ },
+ "FX_EURUSD": {
+  "sector": "Devises",
+  "desc": "Euro contre dollar US, la paire la plus échangée au monde."
+ },
+ "DXY": {
+  "sector": "Devises",
+  "desc": "Indice du dollar US face à un panier de devises."
+ },
+ "FX_EURJPY": {
+  "sector": "Devises",
+  "desc": "Euro contre yen japonais (sensible au carry trade)."
+ },
+ "FX_GBPUSD": {
+  "sector": "Devises",
+  "desc": "Livre sterling contre dollar US."
+ },
+ "FX_USDJPY": {
+  "sector": "Devises",
+  "desc": "Dollar US contre yen (très lié à la politique de la BoJ)."
+ },
+ "FX_USDCHF": {
+  "sector": "Devises",
+  "desc": "Dollar US contre franc suisse (valeur refuge)."
+ },
+ "TVC_SPX": {
+  "sector": "Indices",
+  "desc": "S&P 500 : 500 grandes entreprises américaines."
+ },
+ "TVC_NDX": {
+  "sector": "Indices",
+  "desc": "Nasdaq-100 : 100 grandes valeurs technologiques US."
+ },
+ "TVC_DJI": {
+  "sector": "Indices",
+  "desc": "Dow Jones : 30 grandes industrielles américaines."
+ },
+ "TVC_CAC": {
+  "sector": "Indices",
+  "desc": "CAC 40 : 40 grandes entreprises françaises."
+ },
+ "TVC_DAX": {
+  "sector": "Indices",
+  "desc": "DAX : 40 grandes entreprises allemandes."
+ },
+ "TVC_FTSE": {
+  "sector": "Indices",
+  "desc": "FTSE 100 : 100 grandes entreprises britanniques."
+ },
+ "TVC_NI225": {
+  "sector": "Indices",
+  "desc": "Nikkei 225 : grandes entreprises japonaises."
+ },
+ "TVC_VIX": {
+  "sector": "Indices",
+  "desc": "VIX : 'indice de la peur', volatilité attendue du S&P 500."
+ }
+}
