@@ -79,9 +79,14 @@ def _sw(assets, ver):
         ".then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))"
         ".then(()=>self.clients.claim()));});\n"
         "self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;"
-        "e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)"
-        ".then(resp=>{const cp=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,cp));return resp;})"
-        ".catch(()=>caches.match('index.html'))));});\n"
+        "const req=e.request;"
+        "const isHTML=req.mode==='navigate'||(req.headers.get('accept')||'').includes('text/html')||req.url.split('?')[0].endsWith('.html');"
+        "if(isHTML){"  # network-first : pages toujours fraîches en ligne (évite liens morts en cache)
+        "e.respondWith(fetch(req).then(resp=>{const cp=resp.clone();caches.open(CACHE).then(c=>c.put(req,cp));return resp;})"
+        ".catch(()=>caches.match(req).then(r=>r||caches.match('index.html'))));"
+        "}else{"  # statique : cache-first
+        "e.respondWith(caches.match(req).then(r=>r||fetch(req).then(resp=>{const cp=resp.clone();caches.open(CACHE).then(c=>c.put(req,cp));return resp;})));"
+        "}});\n"
     )
 
 

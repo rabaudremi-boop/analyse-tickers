@@ -135,67 +135,103 @@ def run_one(sym, days, out_dir, with_news=True, intervals=("1d", "1w"),
 
 
 INDEX_TPL = r"""<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>__TITLE__</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>__TITLE__</title>
 <style>
-:root{color-scheme:light dark}
-body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#fff;color:#1a1a1a}
-@media(prefers-color-scheme:dark){body{background:#0e0f12;color:#d8d8d8}.card,.panel{background:#16181d!important;border-color:#262a31!important}}
-.wrap{max-width:1140px;margin:0 auto;padding:20px}
-h1{font-size:21px;margin:0 0 2px}.sub{font-size:12px;opacity:.6;margin-bottom:14px}
-.panel{background:#fafafa;border:1px solid #e6e6e6;border-radius:12px;padding:14px 16px;margin-bottom:16px}
-.panel h2{font-size:13px;font-weight:600;margin:0 0 10px;opacity:.7;text-transform:uppercase;letter-spacing:.04em}
-.stats{display:flex;flex-wrap:wrap;gap:22px;margin-bottom:12px}
-.stat .v{font-size:22px;font-weight:600}.stat .l{font-size:11px;opacity:.6}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{font-size:12px;padding:4px 9px;border-radius:8px;background:rgba(128,128,128,.10);white-space:nowrap}
+:root{--ac:#378ADD;--bg:#f5f6f8;--surf:#fff;--bd:#e6e8ec;--tx:#10131a;--mut:#6b7280;color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root{--bg:#0c0d11;--surf:#16181d;--bd:#23262d;--tx:#e6e8ec;--mut:#9aa0a6}}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:78px}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px}
+.hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+h1{font-size:22px;font-weight:700;margin:0}
+.sub{font-size:12px;color:var(--mut);margin:2px 0 14px}
+.panel{background:var(--surf);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px}
+.panel h2{font-size:12px;font-weight:600;margin:0 0 12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.stat{flex:1;min-width:80px;background:var(--bg);border-radius:12px;padding:10px 12px}
+.stat .v{font-size:24px;font-weight:700;line-height:1}.stat .l{font-size:11px;color:var(--mut);margin-top:3px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-size:12px;padding:5px 10px;border-radius:9px;background:var(--bg);white-space:nowrap}
 .chip b{font-weight:600}
-.lead{font-size:12px;opacity:.85;margin-top:4px}
-input{width:100%;max-width:300px;padding:9px 12px;border:1px solid #ccc;border-radius:8px;font-size:14px;background:transparent;color:inherit}
-.fbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:14px 0}
-.fbtn{font-size:12px;padding:5px 11px;border-radius:8px;border:1px solid rgba(128,128,128,.35);background:transparent;color:inherit;cursor:pointer}
-.fbtn.active{background:#378ADD;color:#fff;border-color:#378ADD}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px}
-.card{color:inherit;background:#fafafa;border:1px solid #e6e6e6;border-radius:10px;padding:12px 14px}
-.card:hover{border-color:#999}
-.sym{font-size:15px;font-weight:600}.tag{font-size:10px;opacity:.6;text-transform:uppercase}
-.row{font-size:12px;margin-top:6px;opacity:.85}
+.lead{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.5}
+input{width:100%;max-width:320px;padding:10px 13px;border:1px solid var(--bd);border-radius:10px;font-size:14px;background:var(--surf);color:inherit}
+.fbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:12px 0}
+.fbtn{font-size:12px;padding:6px 12px;border-radius:9px;border:1px solid var(--bd);background:var(--surf);color:inherit;cursor:pointer;transition:.12s}
+.fbtn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{position:relative;color:inherit;background:var(--surf);border:1px solid var(--bd);border-radius:14px;padding:13px 15px;transition:.12s}
+.card:hover{border-color:var(--ac);transform:translateY(-1px)}
+.fav{position:absolute;top:10px;right:10px;border:none;background:none;font-size:19px;line-height:1;cursor:pointer;color:#c9ad5a;padding:2px}
+.fav.on{color:#e8b923}
+.sym{font-size:15px;font-weight:700;padding-right:24px}
+.tag{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin-top:1px}
+.row{font-size:12px;margin-top:6px;color:var(--tx);opacity:.92}
 .up{color:#1D9E75}.down{color:#E24B4A}
-.stars{font-size:14px;color:#BA7517;letter-spacing:1px;margin-top:6px}
-.biasl{font-size:11px;color:inherit;opacity:.7;letter-spacing:0}
-.rr{font-size:12px;margin-top:6px;font-weight:600}
-.rr small{font-weight:400;opacity:.7}
-.rr-good{color:#1D9E75}.rr-mid{color:#BA7517}.rr-bad{color:#E24B4A}
-.bz{font-size:11px;margin-top:6px;color:#0F6E56;background:rgba(29,158,117,.12);border-radius:6px;padding:3px 7px;display:inline-block}
-@media(prefers-color-scheme:dark){.bz{color:#5DCAA5}.rr-good{color:#5DCAA5}}
-.news1{font-size:11px;opacity:.55;margin-top:7px;line-height:1.4}
-.pill{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:#7F77DD22;color:#7F77DD;margin-top:6px}
-.tflinks{margin-top:9px;font-size:12px}
-.tflinks a{color:#378ADD;text-decoration:none;font-weight:500;border:1px solid #378ADD55;border-radius:6px;padding:2px 9px;margin-right:5px}
-.tflinks a:hover{background:#378ADD22}
-.err{opacity:.5;border-style:dashed}
-.disc{font-size:11px;opacity:.5;margin-top:18px}
+.stars{font-size:14px;color:#e8b923;letter-spacing:1px;margin-top:7px}
+.biasl{font-size:11px;color:var(--mut);letter-spacing:0}
+.rr{display:inline-block;font-size:12px;margin-top:7px;font-weight:700;padding:2px 8px;border-radius:7px}
+.rr small{font-weight:400;opacity:.8}
+.rr-good{background:rgba(29,158,117,.15);color:#0F6E56}.rr-mid{background:rgba(186,117,23,.15);color:#8a5a12}.rr-bad{background:rgba(226,75,74,.13);color:#a32d2d}
+@media(prefers-color-scheme:dark){.rr-good{color:#5DCAA5}.rr-mid{color:#EF9F27}.rr-bad{color:#F09595}}
+.bz{font-size:11px;margin-top:7px;color:#0F6E56;background:rgba(29,158,117,.12);border-radius:7px;padding:3px 8px;display:inline-block}
+@media(prefers-color-scheme:dark){.bz{color:#5DCAA5}}
+.news1{font-size:11px;color:var(--mut);margin-top:7px;line-height:1.4}
+.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(127,119,221,.15);color:#534AB7;margin-top:7px}
+@media(prefers-color-scheme:dark){.pill{color:#AFA9EC}}
+.tflinks{margin-top:10px;font-size:12px}
+.tflinks a{color:var(--ac);text-decoration:none;font-weight:600;border:1px solid var(--ac);border-radius:8px;padding:3px 11px;margin-right:6px;display:inline-block}
+.tflinks a:active{background:var(--ac);color:#fff}
+.err{opacity:.55;border-style:dashed}
+.empty{text-align:center;color:var(--mut);padding:50px 20px;font-size:14px}
+.infos{background:var(--surf);border:1px solid var(--bd);border-radius:16px;padding:18px;font-size:13px;line-height:1.7}
+.infos h3{margin:0 0 6px;font-size:15px}
+.tabbar{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--surf);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom);z-index:50}
+.tb{flex:1;border:none;background:none;color:var(--mut);font-size:10px;padding:9px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
+.tb .ic{font-size:19px;line-height:1}
+.tb.active{color:var(--ac)}
 </style></head><body><div class="wrap">
-<h1>__TITLE__</h1>
-<div class="sub">__N__ actifs · classés par ratio risque/récompense · généré __DATE__ UTC</div>
-__PANEL__
-<div class="fbar">
-  <input id="q" placeholder="rechercher…" oninput="flt()">
+<div class="hd"><h1>__TITLE__</h1><span class="sub">__N__ actifs · MAJ __DATE__ UTC</span></div>
+<div id="panel">__PANEL__</div>
+<div class="fbar" id="filterbar">
+  <input id="q" placeholder="rechercher un actif…" oninput="flt()">
   <span id="catf"></span>
 </div>
 <div class="fbar" id="biasf"></div>
 <div class="grid" id="g">__CARDS__</div>
-<div class="disc">Aide à l'analyse — <b>pas un conseil d'investissement</b>. Note ⭐ et ratio R/R = synthèse de signaux techniques (récompense vers résistance / risque vers support), pas un signal d'achat/vente. Niveaux calculés automatiquement.</div>
-</div><script>
-var CATS=__CATS__, curCat='Tous', curBias='Tous';
+<div class="empty" id="emptyfav" style="display:none">Aucun actif en surveillance.<br>Touche l'étoile ☆ sur une carte pour l'ajouter.</div>
+<div class="infos" id="infos" style="display:none">__INFOS__</div>
+</div>
+<nav class="tabbar">
+  <button class="tb active" data-tab="marche" onclick="setTab('marche')"><span class="ic">📊</span>Marché</button>
+  <button class="tb" data-tab="surveillance" onclick="setTab('surveillance')"><span class="ic">⭐</span>Surveillance</button>
+  <button class="tb" data-tab="top" onclick="setTab('top')"><span class="ic">🎯</span>Top R/R</button>
+  <button class="tb" data-tab="infos" onclick="setTab('infos')"><span class="ic">ℹ️</span>Infos</button>
+</nav>
+<script>
+var CATS=__CATS__, curCat='Tous', curBias='Tous', tab='marche';
+var FAV=JSON.parse(localStorage.getItem('ta-favs')||'[]');
+function saveFav(){localStorage.setItem('ta-favs',JSON.stringify(FAV));}
+function toggleFav(s,btn){event.stopPropagation();var i=FAV.indexOf(s);if(i>=0)FAV.splice(i,1);else FAV.push(s);saveFav();markFavs();if(tab==='surveillance')flt();}
+function markFavs(){document.querySelectorAll('#g .card').forEach(function(c){var b=c.querySelector('.fav');if(!b)return;var f=FAV.indexOf(c.dataset.sym)>=0;b.textContent=f?'★':'☆';b.classList.toggle('on',f);});}
 function chips(id,list,cur,setter){var e=document.getElementById(id);e.innerHTML='';list.forEach(function(c){var b=document.createElement('button');b.className='fbtn'+(c===cur?' active':'');b.textContent=c;b.onclick=function(){setter(c);};e.appendChild(b);});}
-function render(){chips('catf',['Tous'].concat(CATS),curCat,function(c){curCat=c;render();flt();});chips('biasf',['Tous','Haussier','Baissier','Neutre'],curBias,function(c){curBias=c;render();flt();});}
-function flt(){var v=(document.getElementById('q').value||'').toLowerCase();
-document.querySelectorAll('#g .card').forEach(function(c){
- var okC=curCat==='Tous'||c.dataset.cat===curCat;
- var okB=curBias==='Tous'||c.dataset.bias===curBias.toLowerCase();
- var okQ=!v||c.textContent.toLowerCase().includes(v);
- c.style.display=(okC&&okB&&okQ)?'':'none';});}
-render();
+function renderChips(){chips('catf',['Tous'].concat(CATS),curCat,function(c){curCat=c;renderChips();flt();});chips('biasf',['Tous','Haussier','Baissier','Neutre'],curBias,function(c){curBias=c;renderChips();flt();});}
+function setTab(t){tab=t;document.querySelectorAll('.tabbar .tb').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t);});
+ var m=(t==='marche');
+ document.getElementById('panel').style.display=m?'':'none';
+ document.getElementById('filterbar').style.display=m?'':'none';
+ document.getElementById('biasf').style.display=m?'':'none';
+ document.getElementById('infos').style.display=(t==='infos')?'':'none';
+ document.getElementById('g').style.display=(t==='infos')?'none':'';
+ window.scrollTo(0,0);flt();}
+function flt(){var v=(document.getElementById('q').value||'').toLowerCase();var shown=0;
+ document.querySelectorAll('#g .card').forEach(function(c){
+  var ok=true;
+  if(tab==='surveillance')ok=FAV.indexOf(c.dataset.sym)>=0;
+  else if(tab==='top')ok=(+c.dataset.rank)<15;
+  else ok=(curCat==='Tous'||c.dataset.cat===curCat)&&(curBias==='Tous'||c.dataset.bias===curBias.toLowerCase())&&(!v||c.textContent.toLowerCase().includes(v));
+  c.style.display=ok?'':'none';if(ok)shown++;});
+ document.getElementById('emptyfav').style.display=(tab==='surveillance'&&shown===0)?'':'none';}
+renderChips();markFavs();flt();
 </script></body></html>"""
 
 
@@ -257,7 +293,7 @@ def build_index(results, out_dir, title="Analyse Tickers"):
     present = [c for c in cats_order if any(r["category"] == c for r in ok)]
     present += [c for c in {r["category"] for r in ok} if c not in present]
 
-    for r in ok:
+    for idx, r in enumerate(ok):
         up = "haussier" in r["trend"]
         rsi = f"{r['rsi']:.0f}" if r["rsi"] else "n/a"
         stars = "★" * r["stars"] + "☆" * (5 - r["stars"])
@@ -274,8 +310,11 @@ def build_index(results, out_dir, title="Analyse Tickers"):
         bz_html = (f'<div class="bz">🎯 zone achat {bz["low"]:.5g}–{bz["high"]:.5g} '
                    f'({bz["distance_pct"]}% sous)</div>' if bz else "")
         links = " · ".join(f'<a href="{fn}">{iv.upper()}</a>' for iv, fn in r["files"].items())
+        sym = r["symbol"].replace("'", "")
         cards.append(
-            f'<div class="card" data-cat="{r["category"]}" data-bias="{_bias_key(r["bias"])}">'
+            f'<div class="card" data-cat="{r["category"]}" data-bias="{_bias_key(r["bias"])}" '
+            f'data-sym="{sym}" data-rank="{idx}">'
+            f'<button class="fav" onclick="toggleFav(\'{sym}\',this)">☆</button>'
             f'<div class="sym">{r.get("name", r["symbol"])}</div>'
             f'<div class="tag">{r["symbol"]} · {r["category"]}</div>'
             f'<div class="stars">{stars} <span class="biasl">{r["bias"]}</span></div>'
@@ -289,12 +328,28 @@ def build_index(results, out_dir, title="Analyse Tickers"):
                      f'<div class="sym">{r["symbol"]}</div>'
                      f'<div class="row">échec : {r.get("error")}</div></div>')
 
+    date = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
+    infos = (
+        "<h3>À propos</h3>"
+        f"<p>{len(ok)} actifs (actions US & PEA/UE, ETF, crypto, matières premières, "
+        "devises, indices) — graphiques mis à jour automatiquement chaque jour, "
+        "analyses rédigées à la demande.</p>"
+        "<p><b>Note ⭐</b> = synthèse des signaux techniques (biais haussier↔baissier). "
+        "<b>R/R</b> = ratio récompense (potentiel vers la résistance) ÷ risque (vers le bas "
+        "de la zone d'achat). <b>Zone d'achat</b> = bande de confluence de supports.</p>"
+        "<p><b>Onglets :</b> 📊 Marché (tout, filtrable par catégorie/biais) · "
+        "⭐ Surveillance (tes favoris) · 🎯 Top R/R (15 meilleures configurations) · ℹ️ Infos.</p>"
+        "<p style='color:var(--mut)'>⚠️ Outil d'analyse <b>factuelle</b> — pas un conseil en "
+        "investissement ; ⭐, R/R et zones d'achat sont des synthèses de signaux, pas des "
+        "ordres d'achat/vente. Sources : Yahoo Finance, exchanges crypto. "
+        f"Généré le {date} UTC.</p>")
     html = (INDEX_TPL.replace("__CARDS__", "\n".join(cards))
             .replace("__PANEL__", build_market_panel(ok))
             .replace("__CATS__", json.dumps(present, ensure_ascii=False))
+            .replace("__INFOS__", infos)
             .replace("__TITLE__", title)
             .replace("__N__", str(len(ok)))
-            .replace("__DATE__", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")))
+            .replace("__DATE__", date))
     idx = os.path.join(out_dir, "index.html")
     with open(idx, "w", encoding="utf-8") as f:
         f.write(html)
