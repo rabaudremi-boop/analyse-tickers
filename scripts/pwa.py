@@ -97,8 +97,16 @@ HEAD_TAGS = (
     '<link rel="apple-touch-icon" href="icon-192.png">'
     '<meta name="apple-mobile-web-app-capable" content="yes">'
     '<meta name="viewport" content="width=device-width, initial-scale=1">'
-    "<script>if('serviceWorker' in navigator){addEventListener('load',function(){"
-    "navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>"
+    "<script>if('serviceWorker' in navigator){"
+    "var _had=!!navigator.serviceWorker.controller,_rl=false;"
+    # nouvelle version activée -> recharge auto (1 fois, pas au tout 1er install)
+    "navigator.serviceWorker.addEventListener('controllerchange',function(){if(_rl)return;_rl=true;if(_had)location.reload();});"
+    "addEventListener('load',function(){navigator.serviceWorker.register('sw.js').then(function(reg){"
+    "if(reg.waiting&&navigator.serviceWorker.controller)reg.waiting.postMessage('skip');"  # MAJ déjà en attente
+    "reg.addEventListener('updatefound',function(){var n=reg.installing;if(n)n.addEventListener('statechange',function(){if(n.state==='installed'&&navigator.serviceWorker.controller)n.postMessage('skip');});});"
+    "document.addEventListener('visibilitychange',function(){if(!document.hidden)reg.update();});"  # check MAJ au retour sur l'app
+    "setInterval(function(){reg.update();},1800000);"  # + toutes les 30 min
+    "}).catch(function(){});});}</script>"
 )
 
 
